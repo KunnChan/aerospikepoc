@@ -7,10 +7,12 @@ package com.kunnchan.aerospikepoc.controller;
 import com.kunnchan.aerospikepoc.ducuments.Person;
 import com.kunnchan.aerospikepoc.service.PersonService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Slf4j
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/persons")
@@ -29,7 +31,8 @@ public class PersonController {
     }
 
     @GetMapping("/ids")
-    public Iterable<Person> getAllByIds(@RequestParam Iterable<String> ids){
+    public Iterable<Person> getAllByIds(@RequestParam List<String> ids){
+        log.info("GetAllByIds {} ", ids);
         return personService.findAllByIds(ids);
     }
 
@@ -43,8 +46,9 @@ public class PersonController {
         personService.delete(id);
     }
 
-    @GetMapping("/name/{fristName}")
-    public List<Person> getByFirstName(@PathVariable String firstName){
+    @GetMapping("/name/{firstName}")
+    public List<Person> getByFirstName(@PathVariable(value = "firstName") String firstName){
+        log.info("getByFirstName param : {}", firstName);
         return personService.findByFirstName(firstName);
     }
 }

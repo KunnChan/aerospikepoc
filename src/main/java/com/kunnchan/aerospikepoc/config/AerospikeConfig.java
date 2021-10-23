@@ -62,5 +62,8 @@ public class AerospikeConfig extends AbstractAerospikeDataConfiguration {
         private String username;
         @NotEmpty
         private String password;
+
+        @NotEmpty
+        private String setName;
     }
 }

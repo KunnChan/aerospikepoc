@@ -13,5 +13,5 @@ import java.util.List;
 
 @Repository
 public interface PersonRepository extends AerospikeRepository<Person, String> {
-    List<Person> findByFirstName(String firstName);
+    List<Person> findAllByFirstName(String firstName);
 }
