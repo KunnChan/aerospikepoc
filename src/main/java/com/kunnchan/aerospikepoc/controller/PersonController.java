@@ -25,6 +25,11 @@ public class PersonController {
        return personService.create(person);
     }
 
+    @PostMapping("/multi")
+    public Person create(@RequestParam Integer noOfRecord, @RequestBody Person person){
+        return personService.create(noOfRecord, person);
+    }
+
     @GetMapping
     public Iterable<Person> getAll(){
         return personService.findAll();
@@ -49,6 +54,14 @@ public class PersonController {
     @GetMapping("/name/{firstName}")
     public List<Person> getByFirstName(@PathVariable(value = "firstName") String firstName){
         log.info("getByFirstName param : {}", firstName);
-        return personService.findByFirstName(firstName);
+       // return personService.findByFirstName(firstName);
+        return personService.getPersonsByCriteria(firstName);
+    }
+
+    @GetMapping("/names/{firstName}/{lastName}")
+    public List<Person> getByName(@PathVariable(value = "firstName") String firstName,
+                                  @PathVariable(value = "lastName") String lastName){
+        log.info("getByName param : {}, {}", firstName, lastName);
+        return personService.getPersonsByName(firstName, lastName);
     }
 }

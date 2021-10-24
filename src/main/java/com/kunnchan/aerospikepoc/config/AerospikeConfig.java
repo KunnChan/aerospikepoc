@@ -11,6 +11,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.aerospike.config.AbstractAerospikeDataConfiguration;
+import org.springframework.data.aerospike.config.AerospikeDataSettings;
 import org.springframework.data.aerospike.repository.config.EnableAerospikeRepositories;
 
 import javax.validation.constraints.NotEmpty;
@@ -36,6 +37,12 @@ public class AerospikeConfig extends AbstractAerospikeDataConfiguration {
     @Override
     protected String nameSpace() {
         return properties.getNamespace();
+    }
+
+    @Override
+    protected void configureDataSettings(AerospikeDataSettings.AerospikeDataSettingsBuilder builder) {
+        builder.scansEnabled(true);
+        builder.sendKey(true);
     }
 
 //    @Override
