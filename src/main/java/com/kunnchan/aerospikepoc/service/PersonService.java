@@ -20,11 +20,12 @@ import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.aerospike.repository.query.Criteria;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -47,10 +48,10 @@ public class PersonService {
     }
 
     public List<Person> findAll(){
-        List<Person> persons = new ArrayList<>();
-        personRepository.findAll().forEach(persons::add);
-        return persons;
-       // return queryByPolicy(getScanPolicy());
+        //List<Person> persons = new ArrayList<>();
+        //personRepository.findAll().forEach(persons::add);
+        //return persons;
+        return queryByPolicy(getScanPolicy());
     }
 
     public Iterable<Person> findAllByIds(Iterable<String> ids){
@@ -82,7 +83,7 @@ public class PersonService {
                 String id = key.userKey.toString();
                 String fName = (String) record.getValue("firstName");
                 String lastName = (String) record.getValue("lastName");
-                persons.add(new Person(id, fName, lastName));
+                persons.add(new Person(id, fName, lastName, ""));
             }
         });
         return persons;
@@ -104,28 +105,44 @@ public class PersonService {
 
     public List<Person> getPersonsByCriteria(String firstName){
         Query query = new Query(Criteria.where("firstName").is(firstName, "firstName"));
-        return aerospikeTemplate.find(query, Person.class).collect(Collectors.toList());
+        Set<String> ids = new HashSet<>();
+        ids.add(firstName);
+        return aerospikeTemplate.findByIds(ids, Person.class);
     }
 
     public List<Person> getPersonsByName(String firstName, String lastName) {
 
-        Criteria criteria = new Criteria();
-        Criteria criteria1 = new Criteria();
-        criteria1.is(firstName, "firstName");
+//        Criteria criteria1 = new Criteria();
+        Set<String> ids = new HashSet<>();
+        ids.add("johndoe");
+        ids.add("willsmith");
+        ids.add("willson");
+//        criteria1.is(ids, "firstName");
+//
+//        Criteria criteria2 = new Criteria();
+//        criteria2.is(lastName, "lastName");
+//
+//        criteria1.getCriteriaChain().add(criteria2);
 
-        Criteria criteria2 = new Criteria();
-        criteria2.is(lastName, "lastName");
-
-        criteria1.getCriteriaChain().add(criteria2);
-        Query query = new Query(criteria);
-
-        return aerospikeTemplate.find(null, Person.class).collect(Collectors.toList());
+        List<Predicate<Person>> predicates = new ArrayList<>();
+        if(StringUtils.hasLength(firstName)){
+            predicates.add(str -> str.getFirstName().equalsIgnoreCase(firstName));
+        }
+        if(StringUtils.hasLength(lastName)){
+            predicates.add(str -> str.getLastName().equalsIgnoreCase(lastName));
+        }
+        return StreamSupport.stream(personRepository.findAllById(ids).spliterator(), false)
+                .filter(predicates.stream().reduce(x->true, Predicate::and))
+                .collect(Collectors.toList());
+//        return aerospikeTemplate.findByIds(ids, Person.class).stream()
+//                .filter(predicates.stream().reduce(x->true, Predicate::and))
+//                .collect(Collectors.toList());
     }
 
     public Person create(Integer noOfRecord, Person person) {
         List<Person> persons = new ArrayList<>();
         for (int i = 0; i < noOfRecord; i++) {
-            persons.add(new Person(person.getId() + i, person.getFirstName() + i, person.getLastName() + i));
+            persons.add(new Person(person.getId() + i, person.getFirstName() + i, person.getLastName() + i, person.getAddress()));
         }
         personRepository.saveAll(persons);
         return persons.get(persons.size() -1);
